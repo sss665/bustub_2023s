@@ -10,6 +10,7 @@
 //===----------------------------------------------------------------------===//
 #pragma once
 
+#include <memory>
 #include <string>
 #include <utility>
 #include <vector>
@@ -57,7 +58,20 @@ class BPlusTreeLeafPage : public BPlusTreePage {
   // helper methods
   auto GetNextPageId() const -> page_id_t;
   void SetNextPageId(page_id_t next_page_id);
+  // auto GetPrePageId() const -> page_id_t;
+  // void SetPrePageId(page_id_t next_page_id);
   auto KeyAt(int index) const -> KeyType;
+  auto ValueAt(int index) const -> ValueType;
+  auto FindValue(const KeyType &key, const KeyComparator &comparator, std::vector<ValueType> *result) const -> bool;
+  auto Insert(const KeyType &key, const ValueType &value, const KeyComparator &comparator) -> bool;
+  void Insert(int index, MappingType mp);
+  void CopyOut(std::shared_ptr<MappingType[]> &tmp);
+  void CopyIn(std::shared_ptr<MappingType[]> &tmp);
+  void Copy(B_PLUS_TREE_LEAF_PAGE_TYPE *page_p);
+  auto KeyIndex(const KeyType &key, const KeyComparator &comparator) const -> int;
+  auto PairAt(int index) const -> const MappingType &;
+  void Remove(const KeyType &key, const KeyComparator &comparator);
+  void Remove(int index);
 
   /**
    * @brief for test only return a string representing all keys in
@@ -86,7 +100,8 @@ class BPlusTreeLeafPage : public BPlusTreePage {
 
  private:
   page_id_t next_page_id_;
-  // Flexible array member for page data.
+  // page_id_t pre_page_id_;
+  //  Flexible array member for page data.
   MappingType array_[0];
 };
 }  // namespace bustub

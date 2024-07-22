@@ -10,6 +10,7 @@
 //===----------------------------------------------------------------------===//
 #pragma once
 
+#include <memory>
 #include <queue>
 #include <string>
 
@@ -59,13 +60,13 @@ class BPlusTreeInternalPage : public BPlusTreePage {
    * @param key The new value for key
    */
   void SetKeyAt(int index, const KeyType &key);
-
+  void SetValueAt(int index, const ValueType &value);
   /**
    *
    * @param value the value to search for
    */
   auto ValueIndex(const ValueType &value) const -> int;
-
+  auto KeyIndex(const KeyType &key, const KeyComparator &comparator) const -> int;
   /**
    *
    * @param index the index
@@ -73,6 +74,15 @@ class BPlusTreeInternalPage : public BPlusTreePage {
    */
   auto ValueAt(int index) const -> ValueType;
 
+  auto FindValue(const KeyType &key, const KeyComparator &comparator) const -> ValueType;
+
+  auto Insert(const KeyType &key, const ValueType &value, const KeyComparator &comparator) -> bool;
+  void Insert(int index, MappingType mp);
+  void CopyOut(std::shared_ptr<MappingType[]> &tmp);
+  void CopyInPre(std::shared_ptr<MappingType[]> &tmp);
+  void CopyInAfter(std::shared_ptr<MappingType[]> &tmp);
+  void Copy(B_PLUS_TREE_INTERNAL_PAGE_TYPE *page_p, KeyType &parent_key);
+  void Remove(int index);
   /**
    * @brief For test only, return a string representing all keys in
    * this internal page, formatted as "(key1,key2,key3,...)"

@@ -12,12 +12,12 @@
 
 #pragma once
 
+#include <algorithm>
 #include <limits>
 #include <list>
 #include <mutex>  // NOLINT
 #include <unordered_map>
 #include <vector>
-
 #include "common/config.h"
 #include "common/macros.h"
 
@@ -34,6 +34,19 @@ class LRUKNode {
   [[maybe_unused]] size_t k_;
   [[maybe_unused]] frame_id_t fid_;
   [[maybe_unused]] bool is_evictable_{false};
+
+ public:
+  explicit LRUKNode(frame_id_t fid, size_t k) : k_(k), fid_(fid) {}
+  auto AddHistory(size_t current_timestamp) -> bool {
+    history_.push_back(current_timestamp);
+    if (history_.size() > k_) {
+      history_.pop_front();
+    }
+    return history_.size() == k_;
+  }
+  void SetEvictable(bool is_evictable) { is_evictable_ = is_evictable; }
+  auto GetTime() -> size_t { return history_.front(); }
+  auto GetEvictable() -> bool { return is_evictable_; }
 };
 
 /**
@@ -44,7 +57,7 @@ class LRUKNode {
  * current timestamp and the timestamp of kth previous access.
  *
  * A frame with less than k historical references is given
- * +inf as its backward k-distance. When multipe frames have +inf backward k-distance,
+ * +inf as its backward k-distance. When multiple frames have +inf backward k-distance,
  * classical LRU algorithm is used to choose victim.
  */
 class LRUKReplacer {
@@ -151,6 +164,8 @@ class LRUKReplacer {
   // TODO(student): implement me! You can replace these member variables as you like.
   // Remove maybe_unused if you start using them.
   [[maybe_unused]] std::unordered_map<frame_id_t, LRUKNode> node_store_;
+  std::list<frame_id_t> less_k_;
+  std::list<frame_id_t> sat_k_;
   [[maybe_unused]] size_t current_timestamp_{0};
   [[maybe_unused]] size_t curr_size_{0};
   [[maybe_unused]] size_t replacer_size_;
