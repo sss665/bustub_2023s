@@ -184,4 +184,88 @@ TEST(BPlusTreeTests, InsertTest3) {
   delete transaction;
   delete bpm;
 }
+TEST(BPlusTreeTests, IteratorTest) {
+  // create KeyComparator and index schema
+  auto key_schema = ParseCreateStatement("a bigint");
+  GenericComparator<8> comparator(key_schema.get());
+
+  auto disk_manager = std::make_unique<DiskManagerUnlimitedMemory>();
+  auto *bpm = new BufferPoolManager(50, disk_manager.get());
+  // create and fetch header_page
+  page_id_t page_id;
+  auto header_page = bpm->NewPage(&page_id);
+  ASSERT_EQ(page_id, HEADER_PAGE_ID);
+
+  // create b+ tree
+  BPlusTree<GenericKey<8>, RID, GenericComparator<8>> tree("foo_pk", header_page->GetPageId(), bpm, comparator);
+  GenericKey<8> index_key;
+  RID rid;
+  // create transaction
+  auto *transaction = new Transaction(0);
+
+  std::vector<int64_t> keys = {5, 4, 3, 2, 1};
+  for (auto key : keys) {
+    int64_t value = key & 0xFFFFFFFF;
+    rid.Set(static_cast<int32_t>(key >> 32), value);
+    index_key.SetFromInteger(key);
+    tree.Insert(index_key, rid, transaction);
+  }
+
+  std::vector<RID> rids;
+  for (auto key : keys) {
+    rids.clear();
+    index_key.SetFromInteger(key);
+    tree.GetValue(index_key, &rids);
+    EXPECT_EQ(rids.size(), 1);
+
+    int64_t value = key & 0xFFFFFFFF;
+    EXPECT_EQ(rids[0].GetSlotNum(), value);
+  }
+
+  int64_t start_key = 1;
+  int64_t current_key = start_key;
+  index_key.SetFromInteger(start_key);
+  for (auto iterator = tree.Begin(index_key); iterator != tree.End(); ++iterator) {
+    auto location = (*iterator).second;
+    EXPECT_EQ(location.GetPageId(), 0);
+    EXPECT_EQ(location.GetSlotNum(), current_key);
+    current_key = current_key + 1;
+  }
+
+  EXPECT_EQ(current_key, keys.size() + 1);
+
+  current_key = 1;
+  for (auto iterator = tree.Begin(); iterator != tree.End(); ++iterator) {
+    auto location = (*iterator).second;
+    EXPECT_EQ(location.GetPageId(), 0);
+    EXPECT_EQ(location.GetSlotNum(), current_key);
+    current_key = current_key + 1;
+  }
+
+  EXPECT_EQ(current_key, keys.size() + 1);
+
+  start_key = 3;
+  current_key = start_key;
+  index_key.SetFromInteger(start_key);
+  for (auto iterator = tree.Begin(index_key); iterator != tree.End(); ++iterator) {
+    auto location = (*iterator).second;
+    EXPECT_EQ(location.GetPageId(), 0);
+    EXPECT_EQ(location.GetSlotNum(), current_key);
+    current_key = current_key + 1;
+  }
+
+  bpm->UnpinPage(HEADER_PAGE_ID, true);
+  delete transaction;
+  delete bpm;
+  remove("test.db");
+  remove("test.log");
+}
+/*
+ * Score: 20
+ * Description: Insert keys range from 1 to 5 repeatedly,
+ * check whether insertion of repeated keys fail.
+ * Then check whether the keys are distributed in separate
+ * leaf nodes
+ */
+
 }  // namespace bustub

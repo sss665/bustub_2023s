@@ -39,5 +39,15 @@ void BPlusTreePage::SetMaxSize(int size) { max_size_ = size; }
  * Generally, min page size == max page size / 2
  */
 auto BPlusTreePage::GetMinSize() const -> int { return max_size_ / 2; }
+void BPlusTreePage::CheckLegal(int index, const std::string &s) const {
+  if (index < 0 || index >= GetSize() || index >= GetMaxSize()) {
+    std::cerr << s << "Index out of range" << std::endl;
+  }
+}
+void BPlusTreePage::CheckLegalInsert(int index, const std::string &s) const {
+  if (index < 0 || index > GetSize() || index >= GetMaxSize()) {
+    std::cerr << s << "Index out of range" << std::endl;
+  }
+}
 
 }  // namespace bustub

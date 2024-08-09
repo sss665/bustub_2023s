@@ -176,17 +176,17 @@ auto BufferPoolManager::FetchPageBasic(page_id_t page_id) -> BasicPageGuard { re
 
 auto BufferPoolManager::FetchPageRead(page_id_t page_id) -> ReadPageGuard {
   auto fetch_page = FetchPage(page_id);
-  std::cout<<page_id << "wants RLatch"<<std::endl;
+  // std::cout<<page_id << "wants RLatch"<<std::endl;
   fetch_page->RLatch();
-  std::cout<<page_id << "gets RLatch"<<std::endl;
+  // std::cout<<page_id << "gets RLatch"<<std::endl;
   return {this, fetch_page};
 }
 
 auto BufferPoolManager::FetchPageWrite(page_id_t page_id) -> WritePageGuard {
   auto fetch_page = FetchPage(page_id);
-  std::cout<<page_id << "wants WLatch"<<std::endl;
+  // std::cout<<page_id << "wants WLatch"<<std::endl;
   fetch_page->WLatch();
-  std::cout<<page_id << "gets WLatch"<<std::endl;
+  // std::cout<<page_id << "gets WLatch"<<std::endl;
   return {this, fetch_page};
 }
 

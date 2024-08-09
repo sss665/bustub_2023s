@@ -59,30 +59,34 @@ void B_PLUS_TREE_LEAF_PAGE_TYPE::SetPrePageId(page_id_t pre_page_id) {
 INDEX_TEMPLATE_ARGUMENTS
 auto B_PLUS_TREE_LEAF_PAGE_TYPE::KeyAt(int index) const -> KeyType {
   // replace with your own code
+  CheckLegal(index, " leaf keyat ");
   KeyType key = array_[index].first;
   return key;
 }
 
 INDEX_TEMPLATE_ARGUMENTS
-auto B_PLUS_TREE_LEAF_PAGE_TYPE::ValueAt(int index) const -> ValueType { return array_[index].second; }
+auto B_PLUS_TREE_LEAF_PAGE_TYPE::ValueAt(int index) const -> ValueType {
+  CheckLegal(index, " leaf valueat ");
+  return array_[index].second;
+}
 
 INDEX_TEMPLATE_ARGUMENTS
 auto B_PLUS_TREE_LEAF_PAGE_TYPE::FindValue(const KeyType &key, const KeyComparator &comparator,
                                            std::vector<ValueType> *result) const -> bool {
   int l = 0;
-  int r = GetSize()-1;
-  while(l<=r){
-	int mid = (l+r)/2;
-	int res = comparator(key, KeyAt(mid));
-	if(res==0){
-	  (*result).push_back(ValueAt(mid));
-	  return true;
-	}
-	if(res<0){
-	  r = mid-1;
-	}else{
-	  l = mid+1;
-	}
+  int r = GetSize() - 1;
+  while (l <= r) {
+    int mid = (l + r) / 2;
+    int res = comparator(key, KeyAt(mid));
+    if (res == 0) {
+      (*result).push_back(ValueAt(mid));
+      return true;
+    }
+    if (res < 0) {
+      r = mid - 1;
+    } else {
+      l = mid + 1;
+    }
   }
   return false;
 }
@@ -91,22 +95,23 @@ INDEX_TEMPLATE_ARGUMENTS
 auto B_PLUS_TREE_LEAF_PAGE_TYPE::Insert(const KeyType &key, const ValueType &value, const KeyComparator &comparator)
     -> bool {
   int l = 0;
-  int r = GetSize()-1;
-  while(l<=r){
-	int mid = (l+r)/2;
-	int res = comparator(key, KeyAt(mid));
-	if(res==0){
-	  return false;
-	}
-	if(res<0){
-	  r = mid-1;
-	}else{
-	  l = mid+1;
-	}
+  int r = GetSize() - 1;
+  while (l <= r) {
+    int mid = (l + r) / 2;
+    int res = comparator(key, KeyAt(mid));
+    if (res == 0) {
+      return false;
+    }
+    if (res < 0) {
+      r = mid - 1;
+    } else {
+      l = mid + 1;
+    }
   }
   for (int j = GetSize() - 1; j >= l; j--) {
     array_[j + 1] = array_[j];
   }
+  CheckLegalInsert(l, " leaf insert key ");
   array_[l] = {key, value};
   IncreaseSize(1);
   return true;
@@ -114,7 +119,8 @@ auto B_PLUS_TREE_LEAF_PAGE_TYPE::Insert(const KeyType &key, const ValueType &val
 
 INDEX_TEMPLATE_ARGUMENTS
 void B_PLUS_TREE_LEAF_PAGE_TYPE::Insert(int index, MappingType mp) {
-  for (int i = GetSize() - 1; i >= index; i++) {
+  CheckLegalInsert(index, " leaf insert index");
+  for (int i = GetSize() - 1; i >= index; i--) {
     array_[i + 1] = array_[i];
   }
   array_[index] = mp;
@@ -150,24 +156,26 @@ void B_PLUS_TREE_LEAF_PAGE_TYPE::Copy(BPlusTreeLeafPage<KeyType, ValueType, KeyC
 INDEX_TEMPLATE_ARGUMENTS
 auto B_PLUS_TREE_LEAF_PAGE_TYPE::KeyIndex(const KeyType &key, const KeyComparator &comparator) const -> int {
   int l = 0;
-  int r = GetSize()-1;
-  while(l<=r){
-	int mid = (l+r)/2;
-	int res = comparator(key, KeyAt(mid));
-	if(res==0){
-	  return mid;
-	}
-	if(res<0){
-	  r = mid-1;
-	}else{
-	  l = mid+1;
-	}
+  int r = GetSize() - 1;
+  while (l <= r) {
+    int mid = (l + r) / 2;
+    int res = comparator(key, KeyAt(mid));
+    if (res == 0) {
+      CheckLegal(mid, " leaf keyindex ");
+      return mid;
+    }
+    if (res < 0) {
+      r = mid - 1;
+    } else {
+      l = mid + 1;
+    }
   }
   return -1;
 }
 
 INDEX_TEMPLATE_ARGUMENTS
 auto B_PLUS_TREE_LEAF_PAGE_TYPE::PairAt(int index) const -> const MappingType & {
+  CheckLegal(index, " leaf pairat ");
   const MappingType &mp = array_[index];
   return mp;
 }
@@ -186,6 +194,7 @@ void B_PLUS_TREE_LEAF_PAGE_TYPE::Remove(const KeyType &key, const KeyComparator 
 
 INDEX_TEMPLATE_ARGUMENTS
 void B_PLUS_TREE_LEAF_PAGE_TYPE::Remove(int index) {
+  CheckLegal(index, " leaf remove index ");
   for (int i = index + 1; i < GetSize(); i++) {
     array_[i - 1] = array_[i];
   }

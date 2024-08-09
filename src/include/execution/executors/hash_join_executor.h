@@ -21,7 +21,56 @@
 #include "storage/table/tuple.h"
 
 namespace bustub {
+class SimpleHashJoinTable {
+ public:
+	/**
+	 * Construct a new SimpleAggregationHashTable instance.
+	 * @param agg_exprs the aggregation expressions
+	 * @param agg_types the types of aggregations
+	 */
+	SimpleHashJoinTable() = default;
+	/**
+	 * TODO(Student)
+	 *
+	 * Combines the input into the aggregation result.
+	 * @param[out] result The output aggregate value
+	 * @param input The input value
+	 */
+	/*void CombineAggregateValues(HashJoinValue *result, const Tuple &input) {
+		result->tuples.emplace_back(input);
+	}*/
 
+	void InsertCombine(const HashJoinKey &hash_key, const Tuple &val) {
+		if (ht_.count(hash_key) == 0) {
+			std::vector<Tuple> tuple{val};
+			ht_.insert({hash_key, {tuple}});
+		}else{
+			ht_[hash_key].tuples.emplace_back(val);
+		}
+	}
+
+	auto FindValue(const HashJoinKey &hash_key,int index) -> Tuple{
+		return ht_[hash_key].tuples[index];
+	}
+
+	auto IfEnd(const HashJoinKey &hash_key,uint32_t index) -> bool{
+		if(index == ht_[hash_key].tuples.size()-1){
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Clear the hash table
+	 */
+	void Clear() { ht_.clear(); }
+	auto End() -> std::unordered_map<HashJoinKey, HashJoinValue>::const_iterator { return ht_.cend(); }
+	auto Find(HashJoinKey hash_join_key) -> std::unordered_map<HashJoinKey, HashJoinValue>::const_iterator { return ht_.find(hash_join_key); }
+ private:
+	/** The hash table is just a map from aggregate keys to aggregate values */
+	std::unordered_map<HashJoinKey, HashJoinValue> ht_{};
+	/** The types of aggregations that we have */
+};
 /**
  * HashJoinExecutor executes a nested-loop JOIN on two tables.
  */
@@ -52,8 +101,32 @@ class HashJoinExecutor : public AbstractExecutor {
   auto GetOutputSchema() const -> const Schema & override { return plan_->OutputSchema(); };
 
  private:
+	/** @return The tuple as an AggregateKey */
+	auto MakeLeftHashJoinKey(const Tuple *tuple) -> HashJoinKey {
+		std::vector<Value> keys;
+		for (const auto &expr : plan_->LeftJoinKeyExpressions()) {
+			keys.emplace_back(expr->Evaluate(tuple, left_child_->GetOutputSchema()));
+		}
+		return {keys};
+	}
+
+	/** @return The tuple as an AggregateValue */
+	auto MakeRightHashJoinKey(const Tuple *tuple) -> HashJoinKey {
+		std::vector<Value> keys;
+		for (const auto &expr : plan_->RightJoinKeyExpressions()) {
+			keys.emplace_back(expr->Evaluate(tuple, right_child_->GetOutputSchema()));
+		}
+		return {keys};
+	}
   /** The NestedLoopJoin plan node to be executed. */
   const HashJoinPlanNode *plan_;
+	std::unique_ptr<AbstractExecutor> left_child_;
+	std::unique_ptr<AbstractExecutor> right_child_;
+	SimpleHashJoinTable hjt_;
+	HashJoinKey hash_join_key_;
+	uint32_t index_;
+	bool have_fonud_;
+	Tuple left_tuple_;
 };
 
 }  // namespace bustub

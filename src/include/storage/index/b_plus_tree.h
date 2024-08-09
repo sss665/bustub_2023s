@@ -78,8 +78,8 @@ class BPlusTree {
   auto Insert(const KeyType &key, const ValueType &value, Transaction *txn = nullptr) -> bool;
 
   void InsertParent(const KeyType &key, page_id_t page_id, Context &ctx, page_id_t page_id_1);
-  void Merge(Context &ctx, const KeyType &key, WritePageGuard write_guard);
-  void DeleteParent(WritePageGuard write_guard, Context &ctx, int index, const KeyType &key);
+  void Merge(Context &ctx, const KeyType &key, WritePageGuard &write_guard);
+  void DeleteParent(WritePageGuard &write_guard, Context &ctx, int index, const KeyType &key);
 
   // Remove a key and its value from this B+ tree.
   void Remove(const KeyType &key, Transaction *txn);

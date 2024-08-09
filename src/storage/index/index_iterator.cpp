@@ -23,9 +23,7 @@ INDEXITERATOR_TYPE::~IndexIterator() = default;  // NOLINT
 
 INDEX_TEMPLATE_ARGUMENTS
 auto INDEXITERATOR_TYPE::IsEnd() -> bool {
-  WritePageGuard guard = bpm_->FetchPageWrite(page_id_);
-  auto leaf = guard.As<LeafPage>();
-  return leaf->GetNextPageId() == INVALID_PAGE_ID;
+  return page_id_ == INVALID_PAGE_ID;
 }
 
 INDEX_TEMPLATE_ARGUMENTS

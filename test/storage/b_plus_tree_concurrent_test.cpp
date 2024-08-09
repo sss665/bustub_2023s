@@ -355,8 +355,8 @@ TEST(BPlusTreeConcurrentTest, MixTest2) {
   // Add perserved_keys
   std::vector<int64_t> perserved_keys;
   std::vector<int64_t> dynamic_keys;
-  int64_t total_keys = 50;
-  int64_t sieve = 5;
+  int64_t total_keys = 500000;
+  int64_t sieve = 3;
   for (int64_t i = 1; i <= total_keys; i++) {
     if (i % sieve == 0) {
       perserved_keys.push_back(i);
@@ -378,7 +378,7 @@ TEST(BPlusTreeConcurrentTest, MixTest2) {
   tasks.emplace_back(delete_task);
   tasks.emplace_back(lookup_task);
 
-  size_t num_threads = 6;
+  size_t num_threads = 20;
   for (size_t i = 0; i < num_threads; i++) {
     threads.emplace_back(std::thread{tasks[i % tasks.size()], i});
   }

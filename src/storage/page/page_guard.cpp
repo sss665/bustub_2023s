@@ -47,7 +47,7 @@ auto ReadPageGuard::operator=(ReadPageGuard &&that) noexcept -> ReadPageGuard & 
 
 void ReadPageGuard::Drop() {
   if (guard_.page_ != nullptr && !already_unlock_) {
-    std::cout<<PageId() << "RUnlatch"<<std::endl;
+    // std::cout<<PageId() << "RUnlatch"<<std::endl;
     guard_.page_->RUnlatch();
     already_unlock_ = true;
     guard_.Drop();
@@ -72,7 +72,7 @@ auto WritePageGuard::operator=(WritePageGuard &&that) noexcept -> WritePageGuard
 
 void WritePageGuard::Drop() {
   if (guard_.page_ != nullptr && !already_unlock_) {
-    std::cout<<PageId() << "WUnlatch"<<std::endl;
+    // std::cout<<PageId() << "WUnlatch"<<std::endl;
     guard_.page_->WUnlatch();
     already_unlock_ = true;
     guard_.Drop();

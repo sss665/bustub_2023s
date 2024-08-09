@@ -55,6 +55,8 @@ class BPlusTreePage {
   auto GetMaxSize() const -> int;
   void SetMaxSize(int max_size);
   auto GetMinSize() const -> int;
+  void CheckLegal(int index, const std::string &s) const;
+  void CheckLegalInsert(int index, const std::string &s) const;
 
  private:
   // member variable, attributes that both internal and leaf page share

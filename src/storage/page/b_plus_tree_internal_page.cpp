@@ -36,21 +36,29 @@ void B_PLUS_TREE_INTERNAL_PAGE_TYPE::Init(int max_size) {
 INDEX_TEMPLATE_ARGUMENTS
 auto B_PLUS_TREE_INTERNAL_PAGE_TYPE::KeyAt(int index) const -> KeyType {
   // replace with your own code
+  CheckLegal(index, " internal keyat ");
   KeyType key = array_[index].first;
   return key;
 }
 
 INDEX_TEMPLATE_ARGUMENTS
-void B_PLUS_TREE_INTERNAL_PAGE_TYPE::SetKeyAt(int index, const KeyType &key) { array_[index].first = key; }
+void B_PLUS_TREE_INTERNAL_PAGE_TYPE::SetKeyAt(int index, const KeyType &key) {
+  CheckLegal(index, " internal setkeyat ");
+  array_[index].first = key;
+}
 
 INDEX_TEMPLATE_ARGUMENTS
-void B_PLUS_TREE_INTERNAL_PAGE_TYPE::SetValueAt(int index, const ValueType &value) { array_[index].second = value; }
+void B_PLUS_TREE_INTERNAL_PAGE_TYPE::SetValueAt(int index, const ValueType &value) {
+  CheckLegal(index, " internal setvalueat ");
+  array_[index].second = value;
+}
 /*
  * Helper method to get the value associated with input "index"(a.k.a array
  * offset)
  */
 INDEX_TEMPLATE_ARGUMENTS
 auto B_PLUS_TREE_INTERNAL_PAGE_TYPE::ValueAt(int index) const -> ValueType {
+  CheckLegal(index, " internal valueat ");
   ValueType val = array_[index].second;
   return val;
 }
@@ -58,16 +66,17 @@ auto B_PLUS_TREE_INTERNAL_PAGE_TYPE::ValueAt(int index) const -> ValueType {
 INDEX_TEMPLATE_ARGUMENTS
 auto B_PLUS_TREE_INTERNAL_PAGE_TYPE::KeyIndex(const KeyType &key, const KeyComparator &comparator) const -> int {
   int l = 1;
-  int r = GetSize()-1;
-  while(l<=r){
-	int mid = (l+r)/2;
-	int res = comparator(key, KeyAt(mid));
-	if(res<0){
-	  r = mid-1;
-	}else{
-	  l = mid+1;
-	}
+  int r = GetSize() - 1;
+  while (l <= r) {
+    int mid = (l + r) / 2;
+    int res = comparator(key, KeyAt(mid));
+    if (res < 0) {
+      r = mid - 1;
+    } else {
+      l = mid + 1;
+    }
   }
+  CheckLegal(r, " internal keyindex ");
   return r;
 }
 
@@ -83,22 +92,23 @@ INDEX_TEMPLATE_ARGUMENTS
 auto B_PLUS_TREE_INTERNAL_PAGE_TYPE::Insert(const KeyType &key, const ValueType &value, const KeyComparator &comparator)
     -> bool {
   int l = 1;
-  int r = GetSize()-1;
-  while(l<=r){
-	int mid = (l+r)/2;
-	int res = comparator(key, KeyAt(mid));
-	if(res==0){
-	  return false;
-	}
-	if(res<0){
-	  r = mid-1;
-	}else{
-	  l = mid+1;
-	}
+  int r = GetSize() - 1;
+  while (l <= r) {
+    int mid = (l + r) / 2;
+    int res = comparator(key, KeyAt(mid));
+    if (res == 0) {
+      return false;
+    }
+    if (res < 0) {
+      r = mid - 1;
+    } else {
+      l = mid + 1;
+    }
   }
   for (int j = GetSize() - 1; j >= l; j--) {
     array_[j + 1] = array_[j];
   }
+  CheckLegalInsert(l, " internal insert key ");
   array_[l] = {key, value};
   IncreaseSize(1);
   return true;
@@ -106,7 +116,8 @@ auto B_PLUS_TREE_INTERNAL_PAGE_TYPE::Insert(const KeyType &key, const ValueType 
 
 INDEX_TEMPLATE_ARGUMENTS
 void B_PLUS_TREE_INTERNAL_PAGE_TYPE::Insert(int index, MappingType mp) {
-  for (int i = GetSize() - 1; i >= index; i++) {
+  CheckLegalInsert(index, " internal insert index");
+  for (int i = GetSize() - 1; i >= index; i--) {
     array_[i + 1] = array_[i];
   }
   array_[index] = mp;
@@ -148,14 +159,15 @@ void B_PLUS_TREE_INTERNAL_PAGE_TYPE::Copy(BPlusTreeInternalPage<KeyType, ValueTy
   for (int i = GetSize(); i < GetSize() + page_p->GetSize(); i++) {
     array_[i] = page_p->array_[i - GetSize()];
   }
-  SetKeyAt(size, parent_key);
   IncreaseSize(page_p->GetSize());
+  SetKeyAt(size, parent_key);
 }
 
 INDEX_TEMPLATE_ARGUMENTS
 void B_PLUS_TREE_INTERNAL_PAGE_TYPE::Remove(int index) {
-  for (int i = index + 1; i < GetSize(); i++) {
-    array_[i - 1] = array_[i];
+  CheckLegal(index, " internal remove ");
+  for (int i = index; i < GetSize() - 1; i++) {
+    array_[i] = array_[i + 1];
   }
   IncreaseSize(-1);
 }
