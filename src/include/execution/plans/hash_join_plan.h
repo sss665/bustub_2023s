@@ -16,8 +16,8 @@
 #include <utility>
 #include <vector>
 
-#include "common/util/hash_util.h"
 #include "binder/table_ref/bound_join_ref.h"
+#include "common/util/hash_util.h"
 #include "execution/expressions/abstract_expression.h"
 #include "execution/plans/abstract_plan.h"
 
@@ -78,50 +78,7 @@ class HashJoinPlanNode : public AbstractPlanNode {
   JoinType join_type_;
 
  protected:
-	auto PlanNodeToString() const -> std::string override;
-};
-
-struct HashJoinKey {
-	/** The group-by values */
-	std::vector<Value> hash_key_;
-
-	/**
-	 * Compares two aggregate keys for equality.
-	 * @param other the other aggregate key to be compared with
-	 * @return `true` if both aggregate keys have equivalent group-by expressions, `false` otherwise
-	 */
-	auto operator==(const HashJoinKey &other) const -> bool {
-		for (uint32_t i = 0; i < other.hash_key_.size(); i++) {
-			if (hash_key_[i].CompareEquals(other.hash_key_[i]) != CmpBool::CmpTrue) {
-				return false;
-			}
-		}
-		return true;
-	}
-};
-
-/** AggregateValue represents a value for each of the running aggregates */
-struct HashJoinValue {
-	/** The aggregate values */
-	std::vector<Tuple> tuples;
+  auto PlanNodeToString() const -> std::string override;
 };
 
 }  // namespace bustub
-namespace std {
-
-/** Implements std::hash on AggregateKey */
-template <>
-struct hash<bustub::HashJoinKey> {
-	auto operator()(const bustub::HashJoinKey &hash_join_key) const -> std::size_t {
-		size_t curr_hash = 0;
-		for (const auto &key : hash_join_key.hash_key_) {
-			if (!key.IsNull()) {
-				curr_hash = bustub::HashUtil::CombineHashes(curr_hash, bustub::HashUtil::HashValue(&key));
-			}
-		}
-		return curr_hash;
-	}
-};
-
-}  // namespace std
-

@@ -25,8 +25,8 @@ auto ProjectionExecutor::Next(Tuple *tuple, RID *rid) -> bool {
   // Compute expressions
   std::vector<Value> values{};
   values.reserve(GetOutputSchema().GetColumnCount());
-	// std::cout<<plan_->GetExpressions().size()<<std::endl;
-	// std::cout<<child_executor_->GetOutputSchema().GetColumnCount()<<std::endl;
+  // std::cout<<plan_->GetExpressions().size()<<std::endl;
+  // std::cout<<child_executor_->GetOutputSchema().GetColumnCount()<<std::endl;
   for (const auto &expr : plan_->GetExpressions()) {
     values.push_back(expr->Evaluate(&child_tuple, child_executor_->GetOutputSchema()));
   }
